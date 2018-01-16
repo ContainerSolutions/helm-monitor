@@ -1,0 +1,11 @@
+---
+name: "monitor"
+version: "0.1.0"
+usage: "monitor and rollback based on metrics"
+description: |-
+  Monitor a release, rollback to a previous version based on a query
+ignoreFlags: false
+useTunnel: true
+command: "$HELM_PLUGIN_DIR/helm-monitor"
+hooks:
+  install: "$HELM_PLUGIN_DIR/install.sh"

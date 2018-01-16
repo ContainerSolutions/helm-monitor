@@ -1,0 +1,17 @@
+replicaCount: 3
+image:
+  repository: app
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: app
+  type: LoadBalancer
+  externalPort: 80
+  internalPort: 8080
+resources: {}
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi

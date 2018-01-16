@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.9.2
+
+install:
+  - make dep
+
+script:
+  - make test-all
+  - make dist
+
+deploy:
+  - provider: releases
+    # api_key: ${GITHUB_TOKEN}
+    file: _dist/helm-monitor*
+    skip_cleanup: true
+    file_glob: true
+    on:
+      tags: true

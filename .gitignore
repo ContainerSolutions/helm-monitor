@@ -1,0 +1,5 @@
+vendor
+examples/app/vendor
+_dist
+helm-monitor
+helm-monitor.exe
