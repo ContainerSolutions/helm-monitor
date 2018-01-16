@@ -26,14 +26,14 @@ dist:
 test-all: vet lint test
 
 test:
-	go test -v -parallel=4 ./...
+	go test -v -parallel=4 ./cmd/...
 
 lint:
 	@go get github.com/golang/lint/golint
-	go list ./... | grep -v vendor | xargs -n1 golint
+	go list ./cmd/... | grep -v vendor | xargs -n1 golint
 
 vet:
-	go vet ./...
+	go vet ./cmd/...
 
 dep:
 ifndef HAS_DEP
