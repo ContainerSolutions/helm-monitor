@@ -12,7 +12,7 @@ script:
 
 deploy:
   - provider: releases
-    # api_key: ${GITHUB_TOKEN}
+    api_key: ${GITHUB_TOKEN}
     file: _dist/helm-monitor*
     skip_cleanup: true
     file_glob: true
