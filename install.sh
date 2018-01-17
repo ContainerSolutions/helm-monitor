@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 current_version=$(sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' plugin.yaml)
 HELM_MONITOR_VERSION=${HELM_MONITOR_VERSION:-$current_version}
