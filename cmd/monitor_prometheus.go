@@ -80,7 +80,7 @@ func newMonitorPrometheusCmd(client helm.Interface, out io.Writer) *cobra.Comman
 	f.BoolVar(&prometheusMonitor.dryRun, "dry-run", false, "simulate a monitoring")
 	f.Int64Var(&prometheusMonitor.timeout, "timeout", 300, "time in seconds to wait before assuming a monitoring action is successfull")
 	f.Int64Var(&prometheusMonitor.rollbackTimeout, "rollback-timeout", 300, "time in seconds to wait for any individual Kubernetes operation during the rollback (like Jobs for hooks)")
-	f.Int64Var(&prometheusMonitor.interval, "interval", 10, "time in seconds between each PromQL query")
+	f.Int64Var(&prometheusMonitor.interval, "interval", 10, "time in seconds between each query")
 	f.BoolVar(&prometheusMonitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
 	f.BoolVar(&prometheusMonitor.force, "force", false, "force resource update through delete/recreate if needed")
 	f.BoolVar(&prometheusMonitor.disableHooks, "no-hooks", false, "prevent hooks from running during rollback")
@@ -113,6 +113,12 @@ func (m *monitorPrometheusCmd) run() error {
 
 	ticker := time.NewTicker(time.Second * time.Duration(m.interval))
 
+	go func() {
+		time.Sleep(time.Second * time.Duration(m.timeout))
+		fmt.Fprintf(m.out, "No results after %d second(s)\n", m.timeout)
+		close(quit)
+	}()
+
 	for {
 		select {
 		case <-ticker.C:
@@ -136,7 +142,10 @@ func (m *monitorPrometheusCmd) run() error {
 			}
 
 			if len(response.Data.Result) > 0 {
-				fmt.Fprintf(m.out, "Rolling back\n")
+				ticker.Stop()
+
+				fmt.Fprintf(m.out, "Failure detected, rolling back...\n")
+
 				_, err := m.client.RollbackRelease(
 					m.name,
 					helm.RollbackDryRun(m.dryRun),
@@ -152,12 +161,11 @@ func (m *monitorPrometheusCmd) run() error {
 				}
 
 				fmt.Fprintf(m.out, "Successfully rolled back to previous revision!\n")
-				break
+				return nil
 			}
 
 		case <-quit:
 			ticker.Stop()
-			fmt.Fprintf(m.out, "No results after %d...\n", m.timeout)
 			return nil
 		}
 	}

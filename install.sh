@@ -2,7 +2,7 @@
 
 set -e
 
-current_version=$(sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' plugin.yaml)
+current_version=$(sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' $(dirname $0)/plugin.yaml)
 HELM_MONITOR_VERSION=${HELM_MONITOR_VERSION:-$current_version}
 
 dir=${HELM_PLUGIN_DIR:-"$(helm home)/plugins/helm-monitor"}

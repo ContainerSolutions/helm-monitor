@@ -25,7 +25,7 @@ query string.
 
 Usage with Lucene query:
 
-	$ helm monitor elasticsearch frontend 'status:500 AND kubernetes.labels.app:app'
+	$ helm monitor elasticsearch frontend 'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 
 Usage with query DSL file:
 
@@ -85,7 +85,7 @@ func newMonitorElasticSearchCmd(client helm.Interface, out io.Writer) *cobra.Com
 	f.BoolVar(&elasticSearchMonitor.dryRun, "dry-run", false, "simulate a monitoring")
 	f.Int64Var(&elasticSearchMonitor.timeout, "timeout", 300, "time in seconds to wait before assuming a monitoring action is successfull")
 	f.Int64Var(&elasticSearchMonitor.rollbackTimeout, "rollback-timeout", 300, "time in seconds to wait for any individual Kubernetes operation during the rollback (like Jobs for hooks)")
-	f.Int64Var(&elasticSearchMonitor.interval, "interval", 10, "time in seconds between each PromQL query")
+	f.Int64Var(&elasticSearchMonitor.interval, "interval", 10, "time in seconds between each query")
 	f.BoolVar(&elasticSearchMonitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
 	f.BoolVar(&elasticSearchMonitor.force, "force", false, "force resource update through delete/recreate if needed")
 	f.BoolVar(&elasticSearchMonitor.disableHooks, "no-hooks", false, "prevent hooks from running during rollback")
@@ -129,6 +129,12 @@ func (m *monitorElasticSearchCmd) run() error {
 
 	ticker := time.NewTicker(time.Second * time.Duration(m.interval))
 
+	go func() {
+		time.Sleep(time.Second * time.Duration(m.timeout))
+		fmt.Fprintf(m.out, "No results after %d second(s)\n", m.timeout)
+		close(quit)
+	}()
+
 	for {
 		select {
 		case <-ticker.C:
@@ -154,7 +160,10 @@ func (m *monitorElasticSearchCmd) run() error {
 			}
 
 			if response.Count > 0 {
-				fmt.Fprintf(m.out, "Rolling back\n")
+				ticker.Stop()
+
+				fmt.Fprintf(m.out, "Failure detected, rolling back...\n")
+
 				_, err := m.client.RollbackRelease(
 					m.name,
 					helm.RollbackDryRun(m.dryRun),
@@ -170,12 +179,11 @@ func (m *monitorElasticSearchCmd) run() error {
 				}
 
 				fmt.Fprintf(m.out, "Successfully rolled back to previous revision!\n")
-				break
+				return nil
 			}
 
 		case <-quit:
 			ticker.Stop()
-			fmt.Fprintf(m.out, "No results after %d...\n", m.timeout)
 			return nil
 		}
 	}
