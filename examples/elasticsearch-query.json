@@ -4,15 +4,9 @@
       "must": [
         {
           "query_string": {
+            "all_fields": true,
             "analyze_wildcard": true,
-            "query": "status:404"
-          }
-        },
-        {
-          "match_phrase": {
-            "kubernetes.labels.app": {
-              "query": "app"
-            }
+            "query": "status:500 AND kubernetes.labels.app:app AND version:2.0.0"
           }
         }
       ]

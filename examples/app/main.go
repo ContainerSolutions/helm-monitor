@@ -51,11 +51,12 @@ var (
 		},
 		[]string{"code", "method"},
 	)
+
+	version string
 )
 
 func init() {
 	prometheus.MustRegister(inFlightGauge, counter, duration, responseSize)
-
 }
 
 func promRequestHandler(handler http.Handler) http.Handler {
@@ -82,6 +83,7 @@ func main() {
 
 	log := zerolog.New(os.Stdout).With().
 		Timestamp().
+		Str("version", version).
 		Logger()
 
 	go func() {
@@ -102,7 +104,11 @@ func main() {
 
 	s.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello")
-		return
+	})
+
+	s.HandleFunc("/internal-error", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Internal Server Error")
 	})
 
 	log.Info().Msgf("Serving application on port %s", *addr)

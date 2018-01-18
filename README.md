@@ -22,14 +22,14 @@ Monitor the **peeking-bunny** release against a Prometheus server, a rollback
 is initiated if the 5xx error rate is over 0 for the last minute.
 
 ```bash
-$ helm monitor peeking-bunny 'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
+$ helm monitor prometheus peeking-bunny 'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
 ```
 
 You can connect to a given Prometheus instance, by default it will connect to
-*http://localhost:9091*.
+*http://localhost:9090*.
 
 ```bash
-$ helm monitor --prometheus http://prometheus.domain.com:9091 \
+$ helm monitor prometheus --prometheus=http://prometheus:9090 \
     peeking-bunny \
     'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
 ```
@@ -39,17 +39,25 @@ $ helm monitor --prometheus http://prometheus.domain.com:9091 \
 Monitor the **peeking-bunny** release against an ElasticSearch server, a
 rollback is initiated if the 5xx error rate is over 0 for the last minute.
 
+Using a Lucene query:
+
 ```bash
-$ helm monitor peeking-bunny ''
+$ helm monitor elasticsearch peeking-bunny 'status:500 AND kubernetes.labels.app:app'
+```
+
+Using a query DSL file:
+
+```bash
+$ helm monitor elasticsearch peeking-bunny ./query.json
 ```
 
 You can connect to a given ElasticSearch instance, by default it will connect to
 *http://localhost:9200*.
 
 ```bash
-$ helm monitor --prometheus http://prometheus.domain.com:9091 \
+$ helm monitor elasticsearch --elasticsearch=http://elasticsearch:9200 \
     peeking-bunny \
-    'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
+    'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 ```
 
 ## Development
