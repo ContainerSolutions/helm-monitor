@@ -1,8 +1,10 @@
-Helm Monitor
-============
+Helm Monitor plugin
+===================
 
 > Monitor a release, rollback to a previous version depending on the result of
 a PromQL (Prometheus), Lucene or DSL query (ElasticSearch).
+
+<a href="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs" target="_blank"><img src="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs.png" style="width:100%" /></a>
 
 ## Install
 
@@ -19,10 +21,11 @@ You can find a step-by-step example in the `./examples` directory.
 ### Prometheus
 
 Monitor the **peeking-bunny** release against a Prometheus server, a rollback
-is initiated if the 5xx error rate is over 0 for the last minute.
+is initiated if the 5xx error rate is over 0 as measured over the last 5
+minutes.
 
 ```bash
-$ helm monitor prometheus peeking-bunny 'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
+$ helm monitor prometheus peeking-bunny 'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
 ```
 
 You can connect to a given Prometheus instance, by default it will connect to
@@ -31,7 +34,7 @@ You can connect to a given Prometheus instance, by default it will connect to
 ```bash
 $ helm monitor prometheus --prometheus=http://prometheus:9090 \
     peeking-bunny \
-    'rate(http_requests_total{status=~"^5..$"}[1m]) > 0'
+    'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
 ```
 
 ### ElasticSearch
@@ -42,7 +45,7 @@ rollback is initiated if the 5xx error rate is over 0 for the last minute.
 Using a Lucene query:
 
 ```bash
-$ helm monitor elasticsearch peeking-bunny 'status:500 AND kubernetes.labels.app:app'
+$ helm monitor elasticsearch peeking-bunny 'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 ```
 
 Using a query DSL file:
@@ -85,3 +88,8 @@ Run:
 ```bash
 $ helm monitor elasticsearch my-release ./examples/elasticsearch-query.json
 ```
+
+## Todo
+
+- Investigate tool for failure detection compared to previous time window
+- Add flag for [fancy graph](https://github.com/gizak/termui)
