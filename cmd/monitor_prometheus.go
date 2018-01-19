@@ -22,7 +22,7 @@ empty result.
 
 Usage:
 
-	$ helm monitor prometheus frontend 'rate(http_requests_total{status=~"5.."}[1m]) > 0'
+	$ helm monitor prometheus frontend 'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
 
 
 Reference:
@@ -32,18 +32,11 @@ Reference:
 `
 
 type monitorPrometheusCmd struct {
-	name            string
-	out             io.Writer
-	client          helm.Interface
-	timeout         int64
-	rollbackTimeout int64
-	interval        int64
-	prometheusAddr  string
-	query           string
-	dryRun          bool
-	wait            bool
-	force           bool
-	disableHooks    bool
+	name           string
+	out            io.Writer
+	client         helm.Interface
+	prometheusAddr string
+	query          string
 }
 
 type prometheusQueryResponse struct {
@@ -52,10 +45,9 @@ type prometheusQueryResponse struct {
 	} `json:"data"`
 }
 
-func newMonitorPrometheusCmd(client helm.Interface, out io.Writer) *cobra.Command {
-	prometheusMonitor := &monitorPrometheusCmd{
-		out:    out,
-		client: client,
+func newMonitorPrometheusCmd(out io.Writer) *cobra.Command {
+	m := &monitorPrometheusCmd{
+		out: out,
 	}
 
 	cmd := &cobra.Command{
@@ -68,23 +60,16 @@ func newMonitorPrometheusCmd(client helm.Interface, out io.Writer) *cobra.Comman
 				return fmt.Errorf("This command neeeds 2 argument: release name, promql")
 			}
 
-			prometheusMonitor.name = args[0]
-			prometheusMonitor.query = args[1]
-			prometheusMonitor.client = ensureHelmClient(prometheusMonitor.client)
+			m.name = args[0]
+			m.query = args[1]
+			m.client = ensureHelmClient(m.client)
 
-			return prometheusMonitor.run()
+			return m.run()
 		},
 	}
 
 	f := cmd.Flags()
-	f.BoolVar(&prometheusMonitor.dryRun, "dry-run", false, "simulate a monitoring")
-	f.Int64Var(&prometheusMonitor.timeout, "timeout", 300, "time in seconds to wait before assuming a monitoring action is successfull")
-	f.Int64Var(&prometheusMonitor.rollbackTimeout, "rollback-timeout", 300, "time in seconds to wait for any individual Kubernetes operation during the rollback (like Jobs for hooks)")
-	f.Int64Var(&prometheusMonitor.interval, "interval", 10, "time in seconds between each query")
-	f.BoolVar(&prometheusMonitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
-	f.BoolVar(&prometheusMonitor.force, "force", false, "force resource update through delete/recreate if needed")
-	f.BoolVar(&prometheusMonitor.disableHooks, "no-hooks", false, "prevent hooks from running during rollback")
-	f.StringVar(&prometheusMonitor.prometheusAddr, "prometheus", "http://localhost:9090", "prometheus address")
+	f.StringVar(&m.prometheusAddr, "prometheus", "http://localhost:9090", "prometheus address")
 
 	return cmd
 }
@@ -111,17 +96,19 @@ func (m *monitorPrometheusCmd) run() error {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
-	ticker := time.NewTicker(time.Second * time.Duration(m.interval))
+	ticker := time.NewTicker(time.Second * time.Duration(monitor.interval))
 
 	go func() {
-		time.Sleep(time.Second * time.Duration(m.timeout))
-		fmt.Fprintf(m.out, "No results after %d second(s)\n", m.timeout)
+		time.Sleep(time.Second * time.Duration(monitor.timeout))
+		fmt.Fprintf(m.out, "No results after %d second(s)\n", monitor.timeout)
 		close(quit)
 	}()
 
 	for {
 		select {
 		case <-ticker.C:
+			debug("Processing URL %s", req.URL.String())
+
 			res, err := client.Do(req)
 			if err != nil {
 				return prettyError(err)
@@ -141,6 +128,9 @@ func (m *monitorPrometheusCmd) run() error {
 				return prettyError(err)
 			}
 
+			debug("Response: %v", response)
+			debug("Result count: %d", len(response.Data.Result))
+
 			if len(response.Data.Result) > 0 {
 				ticker.Stop()
 
@@ -148,13 +138,13 @@ func (m *monitorPrometheusCmd) run() error {
 
 				_, err := m.client.RollbackRelease(
 					m.name,
-					helm.RollbackDryRun(m.dryRun),
+					helm.RollbackDryRun(monitor.dryRun),
 					helm.RollbackRecreate(false),
-					helm.RollbackForce(m.force),
-					helm.RollbackDisableHooks(m.disableHooks),
+					helm.RollbackForce(monitor.force),
+					helm.RollbackDisableHooks(monitor.disableHooks),
 					helm.RollbackVersion(0),
-					helm.RollbackTimeout(m.rollbackTimeout),
-					helm.RollbackWait(m.wait))
+					helm.RollbackTimeout(monitor.rollbackTimeout),
+					helm.RollbackWait(monitor.wait))
 
 				if err != nil {
 					return prettyError(err)
@@ -166,6 +156,7 @@ func (m *monitorPrometheusCmd) run() error {
 
 		case <-quit:
 			ticker.Stop()
+			debug("Quitting...")
 			return nil
 		}
 	}

@@ -42,25 +42,17 @@ type monitorElasticSearchCmd struct {
 	name              string
 	out               io.Writer
 	client            helm.Interface
-	timeout           int64
-	rollbackTimeout   int64
-	interval          int64
 	elasticSearchAddr string
 	query             string
-	dryRun            bool
-	wait              bool
-	force             bool
-	disableHooks      bool
 }
 
 type elasticSearchQueryResponse struct {
 	Count int64 `json:"count"`
 }
 
-func newMonitorElasticSearchCmd(client helm.Interface, out io.Writer) *cobra.Command {
-	elasticSearchMonitor := &monitorElasticSearchCmd{
-		out:    out,
-		client: client,
+func newMonitorElasticSearchCmd(out io.Writer) *cobra.Command {
+	m := &monitorElasticSearchCmd{
+		out: out,
 	}
 
 	cmd := &cobra.Command{
@@ -73,23 +65,16 @@ func newMonitorElasticSearchCmd(client helm.Interface, out io.Writer) *cobra.Com
 				return fmt.Errorf("This command neeeds 2 argument: release name, query DSL path or Lucene query")
 			}
 
-			elasticSearchMonitor.name = args[0]
-			elasticSearchMonitor.query = args[1]
-			elasticSearchMonitor.client = ensureHelmClient(elasticSearchMonitor.client)
+			m.name = args[0]
+			m.query = args[1]
+			m.client = ensureHelmClient(m.client)
 
-			return elasticSearchMonitor.run()
+			return m.run()
 		},
 	}
 
 	f := cmd.Flags()
-	f.BoolVar(&elasticSearchMonitor.dryRun, "dry-run", false, "simulate a monitoring")
-	f.Int64Var(&elasticSearchMonitor.timeout, "timeout", 300, "time in seconds to wait before assuming a monitoring action is successfull")
-	f.Int64Var(&elasticSearchMonitor.rollbackTimeout, "rollback-timeout", 300, "time in seconds to wait for any individual Kubernetes operation during the rollback (like Jobs for hooks)")
-	f.Int64Var(&elasticSearchMonitor.interval, "interval", 10, "time in seconds between each query")
-	f.BoolVar(&elasticSearchMonitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
-	f.BoolVar(&elasticSearchMonitor.force, "force", false, "force resource update through delete/recreate if needed")
-	f.BoolVar(&elasticSearchMonitor.disableHooks, "no-hooks", false, "prevent hooks from running during rollback")
-	f.StringVar(&elasticSearchMonitor.elasticSearchAddr, "elasticsearch", "http://localhost:9200", "elasticsearch address")
+	f.StringVar(&m.elasticSearchAddr, "elasticsearch", "http://localhost:9200", "elasticsearch address")
 
 	return cmd
 }
@@ -127,17 +112,19 @@ func (m *monitorElasticSearchCmd) run() error {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
-	ticker := time.NewTicker(time.Second * time.Duration(m.interval))
+	ticker := time.NewTicker(time.Second * time.Duration(monitor.interval))
 
 	go func() {
-		time.Sleep(time.Second * time.Duration(m.timeout))
-		fmt.Fprintf(m.out, "No results after %d second(s)\n", m.timeout)
+		time.Sleep(time.Second * time.Duration(monitor.timeout))
+		fmt.Fprintf(m.out, "No results after %d second(s)\n", monitor.timeout)
 		close(quit)
 	}()
 
 	for {
 		select {
 		case <-ticker.C:
+			debug("Processing URL %s", req.URL.String())
+
 			res, err := client.Do(req)
 			if err != nil {
 				return prettyError(err)
@@ -159,6 +146,9 @@ func (m *monitorElasticSearchCmd) run() error {
 				return prettyError(err)
 			}
 
+			debug("Response: %v", response)
+			debug("Result count: %d", response.Count)
+
 			if response.Count > 0 {
 				ticker.Stop()
 
@@ -166,13 +156,13 @@ func (m *monitorElasticSearchCmd) run() error {
 
 				_, err := m.client.RollbackRelease(
 					m.name,
-					helm.RollbackDryRun(m.dryRun),
+					helm.RollbackDryRun(monitor.dryRun),
 					helm.RollbackRecreate(false),
-					helm.RollbackForce(m.force),
-					helm.RollbackDisableHooks(m.disableHooks),
+					helm.RollbackForce(monitor.force),
+					helm.RollbackDisableHooks(monitor.disableHooks),
 					helm.RollbackVersion(0),
-					helm.RollbackTimeout(m.rollbackTimeout),
-					helm.RollbackWait(m.wait))
+					helm.RollbackTimeout(monitor.rollbackTimeout),
+					helm.RollbackWait(monitor.wait))
 
 				if err != nil {
 					return prettyError(err)
@@ -184,6 +174,7 @@ func (m *monitorElasticSearchCmd) run() error {
 
 		case <-quit:
 			ticker.Stop()
+			debug("Quitting...")
 			return nil
 		}
 	}
