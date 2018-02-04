@@ -30,6 +30,9 @@ var (
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
 			Help: "A counter for requests to the wrapped handler.",
+			ConstLabels: map[string]string{
+				"version": version,
+			},
 		},
 		[]string{"code", "method"},
 	)
@@ -39,6 +42,9 @@ var (
 			Name:    "request_duration_seconds",
 			Help:    "A histogram of latencies for requests.",
 			Buckets: []float64{.25, .5, 1, 2.5, 5, 10},
+			ConstLabels: map[string]string{
+				"version": version,
+			},
 		},
 		[]string{"code", "method"},
 	)
@@ -48,6 +54,9 @@ var (
 			Name:    "response_size_bytes",
 			Help:    "A histogram of response sizes for requests.",
 			Buckets: []float64{200, 500, 900, 1500},
+			ConstLabels: map[string]string{
+				"version": version,
+			},
 		},
 		[]string{"code", "method"},
 	)
@@ -103,12 +112,12 @@ func main() {
 	s := r.Methods("GET").Subrouter()
 
 	s.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello")
+		fmt.Fprintf(w, "Version: %s\n", version)
 	})
 
 	s.HandleFunc("/internal-error", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Internal Server Error")
+		fmt.Fprintf(w, "Version: %s\nStatus: Internal Server Error\n", version)
 	})
 
 	log.Info().Msgf("Serving application on port %s", *addr)
