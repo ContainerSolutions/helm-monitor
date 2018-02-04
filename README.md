@@ -6,6 +6,8 @@ a PromQL (Prometheus), Lucene or DSL query (ElasticSearch).
 
 <a href="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs" target="_blank"><img src="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs.png" style="width:100%" /></a>
 
+![Helm monitor failure](helm-monitor-failure.png)
+
 ## Install
 
 ```bash
