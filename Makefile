@@ -17,11 +17,11 @@ build:
 dist:
 	mkdir -p $(DIST)
 	GOOS=linux GOARCH=amd64 go build -o $(BINARY) -ldflags $(LDFLAGS) ./cmd/...
-	tar -zcvf $(DIST)/helm-monitor_linux_$(VERSION).tgz $(BINARY) README.md LICENSE plugin.yaml
+	tar -zcvf $(DIST)/helm-monitor_linux_$(VERSION).tar.gz $(BINARY) README.md LICENSE plugin.yaml
 	GOOS=darwin GOARCH=amd64 go build -o $(BINARY) -ldflags $(LDFLAGS) ./cmd/...
-	tar -zcvf $(DIST)/helm-monitor_darwin_$(VERSION).tgz $(BINARY) README.md LICENSE plugin.yaml
+	tar -zcvf $(DIST)/helm-monitor_darwin_$(VERSION).tar.gz $(BINARY) README.md LICENSE plugin.yaml
 	GOOS=windows GOARCH=amd64 go build -o $(BINARY).exe -ldflags $(LDFLAGS) ./cmd/...
-	tar -zcvf $(DIST)/helm-monitor_windows_$(VERSION).tgz $(BINARY).exe README.md LICENSE plugin.yaml
+	tar -zcvf $(DIST)/helm-monitor_windows_$(VERSION).tar.gz $(BINARY).exe README.md LICENSE plugin.yaml
 
 test-all: vet lint test
 
