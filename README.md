@@ -18,6 +18,8 @@ $ helm plugin install https://github.com/ContainerSolutions/helm-monitor
 
 ## Usage
 
+![Helm monitor diagram](helm-monitor-diagram.jpg)
+
 A rollback happen only if the number of result from the query is greater than 0.
 
 You can find a step-by-step example in the `./examples` directory.
