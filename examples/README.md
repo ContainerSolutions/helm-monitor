@@ -12,18 +12,13 @@ previous state.
 Install Tiller with RBAC:
 
 ```
-$ kubectl create clusterrolebinding tiller \
-    --clusterrole=cluster-admin \
-    --serviceaccount=kube-system:tiller
-$ helm init --service-account tiller
+$ make installtiller
 ```
 
-Build 2 versions and release the first application to Minikube:
+Build 2 versions of the application and release the first one to Minikube:
 
 ```
-$ eval $(minikube docker-env)
-$ docker build --build-arg "VERSION=1.0.0" -t app:1.0.0 app
-$ docker build --build-arg "VERSION=2.0.0" -t app:2.0.0 app
+$ make prepare
 $ helm upgrade --install my-release ./app/charts --set image.tag=1.0.0
 ```
 
@@ -55,15 +50,15 @@ $ minikube service prometheus
 
 ```
 $ kubectl port-forward prometheus-prometheus-0 9090
-$ helm upgrade --install my-release ./app/charts --set image.tag=2.0.0
-$ helm monitor prometheus my-release 'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
+$ helm upgrade my-release ./app/charts --set image.tag=2.0.0
+$ helm monitor prometheus my-release 'rate(http_requests_total{code=~"^5.*$",version="2.0.0"}[5m]) > 0'
 ```
 
 Simulate internal server failure:
 
 ```
 $ app=$(minikube service my-release-app --url)
-$ while sleep 0.1; do curl "$app"; done
+$ while sleep 1; do curl "$app"/internal-error; done
 ```
 
 
@@ -87,7 +82,7 @@ $ minikube service kibana-logging -n kube-system
 
 ```
 $ kubectl port-forward -n kube-system $(kubectl get po -n kube-system -l k8s-app=elasticsearch-logging -o jsonpath="{.items[0].metadata.name}") 9200
-$ helm upgrade --install my-release ./app/charts --set image.tag=2.0.0
+$ helm upgrade my-release ./app/charts --set image.tag=2.0.0
 ```
 
 Monitor using via query DSL:
@@ -106,5 +101,14 @@ Simulate internal server failure:
 
 ```
 $ app=$(minikube service my-release-app --url)
-$ while sleep 0.1; do curl "$app"; done
+$ while sleep 1; do curl "$app"/internal-error; done
+```
+
+
+## Cleanup
+
+Delete Prometheus operator and my-release:
+
+```
+$ make cleanup
 ```

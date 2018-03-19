@@ -1,23 +1,29 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/heptiolabs/healthcheck"
 	"github.com/justinas/alice"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
+	"github.com/rs/zerolog/log"
 )
 
 var (
-	addr           = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
-	prometheusAddr = flag.String("prometheus-address", ":9101", "The address to listen on for Prometheus metrics requests.")
+	addr        = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
+	probeAddr   = flag.String("probe-address", ":8086", "The address to listen on for probe requests.")
+	metricsAddr = flag.String("metrics-address", ":9101", "The address to listen on for Prometheus metrics requests.")
 
 	inFlightGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -68,6 +74,51 @@ func init() {
 	prometheus.MustRegister(inFlightGauge, counter, duration, responseSize)
 }
 
+func main() {
+	flag.Parse()
+
+	// logs
+	log := zerolog.New(os.Stdout).With().
+		Timestamp().
+		Str("version", version).
+		Logger()
+
+	// graceful shutdown
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+
+	// probes
+	health := healthcheck.NewHandler()
+
+	// router
+	r := mux.NewRouter()
+	c := alice.New(hlog.NewHandler(log), hlog.AccessHandler(accessLogger))
+
+	s := r.Methods("GET").Subrouter()
+	s.HandleFunc("/", httpHandler)
+
+	s.HandleFunc("/internal-error", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Version: %s\nStatus: Internal Server Error\n", version)
+	})
+
+	srv := &http.Server{Addr: *addr, Handler: c.Then(promRequestHandler(r))}
+
+	go serveMetrics(*metricsAddr)
+	go serveHTTP(srv)
+	go serveProbe(*probeAddr, health)
+
+	<-quit
+
+	log.Info().Msg("Shutting down server...")
+
+	// Gracefully shutdown connections
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	srv.Shutdown(ctx)
+}
+
 func promRequestHandler(handler http.Handler) http.Handler {
 	return promhttp.InstrumentHandlerInFlight(inFlightGauge,
 		promhttp.InstrumentHandlerDuration(duration,
@@ -87,41 +138,37 @@ func accessLogger(r *http.Request, status, size int, dur time.Duration) {
 		Msg("request")
 }
 
-func main() {
-	flag.Parse()
+func serveHTTP(srv *http.Server) {
+	log.Info().Msgf("Server started at %s", srv.Addr)
+	err := srv.ListenAndServe()
 
-	log := zerolog.New(os.Stdout).With().
-		Timestamp().
-		Str("version", version).
-		Logger()
-
-	go func() {
-		log.Info().Msgf("Serving Prometheus metrics on port %s", *prometheusAddr)
-
-		http.Handle("/metrics", promhttp.Handler())
-
-		if err := http.ListenAndServe(*prometheusAddr, nil); err != nil {
-			log.Error().Err(err).Msg("Starting Prometheus listener failed")
-		}
-	}()
-
-	c := alice.New(hlog.NewHandler(log), hlog.AccessHandler(accessLogger))
-
-	r := mux.NewRouter()
-
-	s := r.Methods("GET").Subrouter()
-
-	s.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Version: %s\n", version)
-	})
-
-	s.HandleFunc("/internal-error", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Version: %s\nStatus: Internal Server Error\n", version)
-	})
-
-	log.Info().Msgf("Serving application on port %s", *addr)
-	if err := http.ListenAndServe(*addr, c.Then(promRequestHandler(r))); err != nil {
-		log.Fatal().Err(err).Msg("Startup failed")
+	if err != http.ErrServerClosed {
+		log.Fatal().Err(err).Msgf("Listen: %s\n", err)
 	}
+}
+
+func serveProbe(addr string, health healthcheck.Handler) {
+	log.Info().Msgf("Probe server running at %s", *probeAddr)
+	http.ListenAndServe(addr, health)
+}
+
+func serveMetrics(addr string) {
+	log.Info().Msgf("Serving Prometheus metrics on port %s", addr)
+
+	http.Handle("/metrics", promhttp.Handler())
+
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Error().Err(err).Msg("Starting Prometheus listener failed")
+	}
+}
+
+func httpHandler(w http.ResponseWriter, r *http.Request) {
+	hostname, err := os.Hostname()
+
+	if err != nil {
+		fmt.Fprintf(w, "Error getting hostname\n")
+		return
+	}
+
+	fmt.Fprintf(w, "Host: %s, Version: %s\n", hostname, version)
 }

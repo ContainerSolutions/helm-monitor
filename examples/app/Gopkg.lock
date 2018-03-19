@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -22,8 +22,14 @@
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
-  version = "v1.6.0"
+  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
+  version = "v1.6.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/heptiolabs/healthcheck"
+  packages = ["."]
+  revision = "da5fdee475fb09de87c5d4a50da233b7d28767b1"
 
 [[projects]]
   branch = "master"
@@ -58,8 +64,8 @@
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/procfs"
-  packages = [".","xfs"]
-  revision = "b15cd069a83443be3154b719d0cc9fe8117f09fb"
+  packages = [".","internal/util","nfs","xfs"]
+  revision = "cb4147076ac75738c9a7d279075a253c0cc5acbd"
 
 [[projects]]
   name = "github.com/rs/xid"
@@ -82,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0cdb81b87b9f3f19d73b49fd409804f52fb3615956bfade135efdf787617bd19"
+  inputs-digest = "96455b827519b2c67097653b2eb37c59e208924a4a56517fad0f5ad7828cd3f8"
   solver-name = "gps-cdcl"
   solver-version = 1
