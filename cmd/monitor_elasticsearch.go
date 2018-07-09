@@ -149,7 +149,7 @@ func (m *monitorElasticSearchCmd) run() error {
 			debug("Response: %v", response)
 			debug("Result count: %d", response.Count)
 
-			if response.Count > 0 {
+			if response.Count > monitor.expectedResultCount {
 				ticker.Stop()
 
 				fmt.Fprintf(m.out, "Failure detected, rolling back...\n")
