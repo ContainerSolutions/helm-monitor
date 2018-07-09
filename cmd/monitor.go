@@ -18,14 +18,15 @@ var (
 )
 
 type monitorCmd struct {
-	disableHooks    bool
-	dryRun          bool
-	force           bool
-	interval        int64
-	rollbackTimeout int64
-	timeout         int64
-	verbose         bool
-	wait            bool
+	disableHooks        bool
+	dryRun              bool
+	expectedResultCount int64
+	force               bool
+	interval            int64
+	rollbackTimeout     int64
+	timeout             int64
+	verbose             bool
+	wait                bool
 }
 
 const monitorDesc = `
@@ -73,6 +74,7 @@ func newMonitorCmd(out io.Writer) *cobra.Command {
 	p := cmd.PersistentFlags()
 	p.BoolVar(&monitor.disableHooks, "no-hooks", false, "prevent hooks from running during rollback")
 	p.BoolVar(&monitor.dryRun, "dry-run", false, "simulate a rollback if triggered by query result")
+	p.Int64Var(&monitor.expectedResultCount, "expected-result-count", 0, "number of results that are expected to be returned by the query (rollback triggered if the number of results exceeds this value)")
 	p.BoolVar(&monitor.force, "force", false, "force resource update through delete/recreate if needed")
 	p.BoolVar(&monitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
 	p.BoolVarP(&monitor.verbose, "verbose", "v", false, "enable verbose output")
