@@ -131,7 +131,7 @@ func (m *monitorPrometheusCmd) run() error {
 			debug("Response: %v", response)
 			debug("Result count: %d", len(response.Data.Result))
 
-			if len(response.Data.Result) > 0 {
+			if len(response.Data.Result) > int(monitor.expectedResultCount) {
 				ticker.Stop()
 
 				fmt.Fprintf(m.out, "Failure detected, rolling back...\n")
