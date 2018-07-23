@@ -97,5 +97,5 @@ $ helm monitor elasticsearch my-release ./examples/elasticsearch-query.json
 
 ## Todo
 
+- Add more provider (ie: Sentry)
 - Investigate tool for failure detection compared to previous time window
-- Add flag for [fancy graph](https://github.com/gizak/termui)
