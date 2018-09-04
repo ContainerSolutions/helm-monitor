@@ -1,0 +1,12 @@
+.DS_Store
+.git
+.gitignore
+.travis.yml
+CHANGELOG.md
+LICENSE
+Makefile
+README.md
+asciinema_demo.json
+examples
+helm-monitor-diagram.jpg
+helm-monitor-failure.png

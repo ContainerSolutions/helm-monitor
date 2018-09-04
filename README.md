@@ -69,29 +69,28 @@ $ helm monitor elasticsearch --elasticsearch=http://elasticsearch:9200 \
     'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 ```
 
+## Docker
+
+You can also use the Helm monitor backed Docker image to monitor:
+
+```bash
+$ docker run -ti -v $HOME/.kube:/root/.kube containersol/helm-monitor \
+    monitor prometheus --prometheus=http://prometheus:9090 my-release \
+    'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
+```
+
 ## Development
 
-Clone the repo, then add a symlink to the Helm plugin directory:
+Require Go >= 1.11.
 
 ```bash
+# Clone the repo, then add a symlink to the Helm plugin directory:
 $ ln -s $GOPATH/src/github.com/ContainerSolutions/helm-monitor ~/.helm/plugins/helm-monitor
-```
 
-Install dependencies using [dep](https://github.com/golang/dep):
+# Build:
+$ GOPATH="" GO111MODULE=on go build -o helm-monitor ./cmd/...
 
-```bash
-$ dep ensure
-```
-
-Build:
-
-```bash
-$ go build -o helm-monitor ./cmd/...
-```
-
-Run:
-
-```bash
+# Run:
 $ helm monitor elasticsearch my-release ./examples/elasticsearch-query.json
 ```
 
