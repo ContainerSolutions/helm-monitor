@@ -46,8 +46,8 @@ test:
 
 .PHONY: lint
 lint:
-	@go get github.com/golang/lint/golint
-	go list ./cmd/... | grep -v vendor | xargs -n1 golint
+	@go get -u golang.org/x/lint/golint
+	go list ./cmd/... | xargs -n1 $${HOME}/go/bin/golint
 
 .PHONY: vet
 vet:
