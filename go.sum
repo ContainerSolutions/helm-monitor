@@ -55,9 +55,9 @@ k8s.io/apimachinery v0.0.0-20180619225948-e386b2658ed2 h1:NJEj7o7SKxpURej3uJ1QZJ
 k8s.io/apimachinery v0.0.0-20180619225948-e386b2658ed2/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
 k8s.io/apiserver v0.0.0-20180820154946-350f23162361 h1:8S89Yl55afgnK6LoA2ittI7EptFUe1Hr/yPHhjrlrbQ=
 k8s.io/apiserver v0.0.0-20180820154946-350f23162361/go.mod h1:6bqaTSOSJavUIXUtfaR9Os9JtTCm8ZqH2SUl2S60C4w=
-k8s.io/client-go v7.0.0+incompatible h1:niAO25dYuMpRsXOL9aTTCsrJ+QfPOm3ti7KKb8YQUjU=
+k8s.io/client-go v7.0.0+incompatible h1:gokIETH5yPpln/LuXmg1TLVH5bMSaVQTVxuRizwjWwU=
 k8s.io/client-go v7.0.0+incompatible/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
 k8s.io/helm v2.10.0+incompatible h1:Q3pzhXEh0WZdBmnVPXM2IOEpWg+sIeSDvDMriJbMYfE=
 k8s.io/helm v2.10.0+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
-k8s.io/kubernetes v1.10.7 h1:qHoWk8ZyFubpEueKtgORrYhn8DOLxz7iYFZ/ms8w5vk=
+k8s.io/kubernetes v1.10.7 h1:BoqYDFPvWKUiYi3e9tdWyZpt5fwm9n+dfvN1P9ZTaHI=
 k8s.io/kubernetes v1.10.7/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
