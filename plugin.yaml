@@ -1,6 +1,6 @@
 ---
 name: "monitor"
-version: "0.1.2"
+version: "0.2.0"
 usage: "monitor and rollback in case of failure based on metrics or logs"
 description: |-
   Query at a given interval a Prometheus or ElasticSearch instance, a rollback
