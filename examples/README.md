@@ -9,35 +9,37 @@ previous state.
 
 ## Prepare
 
-Install Tiller with RBAC:
-
 ```
-$ make installtiller
-```
+# initialise Tiller
+$ helm init --wait
 
-Build 2 versions of the application and release the first one to Minikube:
+# build the application for Minikube
+$ make build
 
-```
-$ make prepare
-$ helm upgrade --install my-release ./app/charts --set image.tag=1.0.0
-```
+# release version 1
+$ helm upgrade -i my-app --set image.tag=1.0.0 ./app/charts
 
-Access the application:
-
-```
-$ minikube service my-release-app
+# access the application
+$ minikube service my-app
 ```
 
 ## Prometheus
 
 ### Setup
 
-Install Prometheus using Prometheus operator:
+Install Prometheus:
 
 ```
-$ helm repo add coreos https://s3-eu-west-1.amazonaws.com/coreos-charts/stable/
-$ helm upgrade --install prometheus-operator coreos/prometheus-operator
-$ kubectl apply -f ./prometheus.yaml
+$ helm install \
+    --version 7.0.2 \
+    --set server.service.type=Loadbalancer \
+    --set server.global.scrape_interval=30s \
+    --set alertmanager.enabled=false \
+    --set kubeStateMetrics.enabled=false \
+    --set nodeExporter.enabled=false \
+    --set pushgateway.enabled=false \
+    --name prometheus \
+    stable/prometheus
 ```
 
 Access Prometheus:
@@ -49,18 +51,22 @@ $ minikube service prometheus
 ### Upgrade and monitor
 
 ```
-$ kubectl port-forward prometheus-prometheus-0 9090
-$ helm upgrade my-release ./app/charts --set image.tag=2.0.0
-$ helm monitor prometheus my-release 'rate(http_requests_total{code=~"^5.*$",version="2.0.0"}[5m]) > 0'
+# get Prometheus endpoint
+$ prometheus=$(minikube service prometheus-server --url)
+
+# release version 2
+$ helm upgrade -i my-app --set image.tag=2.0.0 ./app/charts
+
+# monitor
+$ helm monitor prometheus my-app --prometheus $prometheus 'rate(http_requests_total{code=~"^5.*$",version="2.0.0"}[5m]) > 0'
 ```
 
-Simulate internal server failure:
+In a new terminal, simulate internal server failure:
 
 ```
-$ app=$(minikube service my-release-app --url)
+$ app=$(minikube service my-app --url)
 $ while sleep 1; do curl "$app"/internal-error; done
 ```
-
 
 ## ElasticSearch
 
@@ -72,7 +78,15 @@ Minikube support the EFK stack via addons, to enable it:
 $ minikube addons enable efk
 ```
 
-Access Kibana (it can take a while before being accessible):
+If Minikube was already running, you might need to restart it in order to have
+the EFK stack up and running:
+
+```
+$ minikube stop
+$ minikube start
+```
+
+Access Kibana:
 
 ```
 $ minikube service kibana-logging -n kube-system
@@ -82,32 +96,32 @@ $ minikube service kibana-logging -n kube-system
 
 ```
 $ kubectl port-forward -n kube-system $(kubectl get po -n kube-system -l k8s-app=elasticsearch-logging -o jsonpath="{.items[0].metadata.name}") 9200
-$ helm upgrade my-release ./app/charts --set image.tag=2.0.0
+$ helm upgrade -i my-app --set image.tag=2.0.0 ./app/charts
 ```
 
 Monitor using via query DSL:
 
 ```
-$ helm monitor elasticsearch my-release ./elasticsearch-query.json
+$ helm monitor elasticsearch my-app ./elasticsearch-query.json
 ```
 
 Or via Lucene query
 
 ```
-$ helm monitor elasticsearch my-release "status:500 AND kubernetes.labels.app:app AND version:2.0.0"
+$ helm monitor elasticsearch my-app "status:500 AND kubernetes.labels.app:app AND version:2.0.0"
 ```
 
 Simulate internal server failure:
 
 ```
-$ app=$(minikube service my-release-app --url)
+$ app=$(minikube service my-app --url)
 $ while sleep 1; do curl "$app"/internal-error; done
 ```
 
 
 ## Cleanup
 
-Delete Prometheus operator and my-release:
+Delete Prometheus and my-app Helm releases:
 
 ```
 $ make cleanup

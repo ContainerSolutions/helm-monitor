@@ -23,7 +23,7 @@ import (
 var (
 	addr        = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
 	probeAddr   = flag.String("probe-address", ":8086", "The address to listen on for probe requests.")
-	metricsAddr = flag.String("metrics-address", ":9101", "The address to listen on for Prometheus metrics requests.")
+	metricsAddr = flag.String("metrics-address", ":9090", "The address to listen on for Prometheus metrics requests.")
 
 	inFlightGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -95,12 +95,8 @@ func main() {
 	c := alice.New(hlog.NewHandler(log), hlog.AccessHandler(accessLogger))
 
 	s := r.Methods("GET").Subrouter()
-	s.HandleFunc("/", httpHandler)
-
-	s.HandleFunc("/internal-error", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Version: %s\nStatus: Internal Server Error\n", version)
-	})
+	s.HandleFunc("/", httpSuccessHandler)
+	s.HandleFunc("/internal-error", httpErrorHandler)
 
 	srv := &http.Server{Addr: *addr, Handler: c.Then(promRequestHandler(r))}
 
@@ -162,7 +158,7 @@ func serveMetrics(addr string) {
 	}
 }
 
-func httpHandler(w http.ResponseWriter, r *http.Request) {
+func httpSuccessHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, err := os.Hostname()
 
 	if err != nil {
@@ -170,5 +166,17 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Host: %s, Version: %s\n", hostname, version)
+	fmt.Fprintf(w, "Host: %s, Version: %s, Status: Success\n", hostname, version)
+}
+
+func httpErrorHandler(w http.ResponseWriter, r *http.Request) {
+	hostname, err := os.Hostname()
+
+	if err != nil {
+		fmt.Fprintf(w, "Error getting hostname\n")
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintf(w, "Host: %s, Version: %s, Status: Internal Servicer Error\n", hostname, version)
 }

@@ -1,10 +1,7 @@
 language: go
 
 go:
-  - 1.9.2
-
-install:
-  - make dep
+  - master
 
 script:
   - make test-all

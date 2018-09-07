@@ -1,41 +1,60 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "charts.fullname" . }}
+  name: {{ include "my-app.fullname" . }}
   labels:
-    app: {{ template "charts.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app: {{ include "my-app.name" . }}
+    chart: {{ include "my-app.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "my-app.name" . }}
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "charts.name" . }}
+        app: {{ include "my-app.name" . }}
         release: {{ .Release.Name }}
-        prometheus: "true"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
     spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.service.internalPort }}
-              name: http
-            - containerPort: 9101
-              name: metrics
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: probes
+              containerPort: 8086
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
+              path: /live
+              port: probes
           readinessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
+              path: /ready
+              port: probes
           resources:
 {{ toYaml .Values.resources | indent 12 }}
-    {{- if .Values.nodeSelector }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
     {{- end }}
