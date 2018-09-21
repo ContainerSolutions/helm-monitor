@@ -45,7 +45,7 @@ $ helm monitor sentry my-app \
     --organization sentry \
     --project my-project \
     --sentry $sentry \
-    --release 2.0.0 \
+    --tag release=2.0.0 \
     'Error triggered'
 ```
 
