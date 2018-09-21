@@ -111,7 +111,7 @@ $ GOPATH="" GO111MODULE=on go build -o helm-monitor ./cmd/...
 $ helm monitor elasticsearch my-release ./examples/elasticsearch-query.json
 ```
 
-## Todo
+## Alternatives
 
-- Add more provider (ie: Sentry)
-- Investigate tool for failure detection compared to previous time window
+- [Kuberbs](https://github.com/doitintl/kuberbs) - Kubernetes Automatic Rollback
+  System
