@@ -2,7 +2,7 @@ Helm Monitor plugin
 ===================
 
 > Monitor a release, rollback to a previous version depending on the result of
-a PromQL (Prometheus), Lucene or DSL query (ElasticSearch).
+a PromQL (Prometheus), events (Sentry), Lucene or DSL query (ElasticSearch).
 
 ![Helm monitor failure](helm-monitor-failure.png)
 
@@ -68,6 +68,23 @@ $ helm monitor elasticsearch --elasticsearch=http://elasticsearch:9200 \
     peeking-bunny \
     'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 ```
+
+### Sentry
+
+Monitor the **peeking-bunny** release against a Sentry server, a rollback is
+initiated if the number of events is over 0 for the release 2.0.0:
+
+```bash
+$ helm monitor sentry my-app \
+    --api-key <SENTRY_API_KEY> \
+    --organization sentry \
+    --project my-project \
+    --sentry http://sentry:9000 \
+    --tag release=2.0.0 \
+    --regexp
+    'Error with database connection.*'
+```
+
 
 ## Docker
 

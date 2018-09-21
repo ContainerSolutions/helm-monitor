@@ -4,12 +4,10 @@ PROMETHEUS_VERSION=7.0.2
 build:
 	eval $$(minikube docker-env) && \
 	docker build \
-		-v $${HOME}/go:/root/go \
 		--build-arg "LDFLAGS=-X main.version=1.0.0" \
 		-t my-app:1.0.0 \
 		app && \
 	docker build \
-		-v $${HOME}/go:/root/go \
 		--build-arg "LDFLAGS=-X main.version=2.0.0" \
 		-t my-app:2.0.0 \
 		app

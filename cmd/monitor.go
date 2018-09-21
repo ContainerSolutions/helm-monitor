@@ -15,6 +15,7 @@ import (
 var (
 	settings helm_env.EnvSettings
 	monitor  *monitorCmd
+	verbose  bool
 )
 
 type monitorCmd struct {
@@ -25,7 +26,6 @@ type monitorCmd struct {
 	interval            int64
 	rollbackTimeout     int64
 	timeout             int64
-	verbose             bool
 	wait                bool
 }
 
@@ -56,7 +56,7 @@ func prettyError(err error) error {
 }
 
 func debug(format string, args ...interface{}) {
-	if monitor.verbose {
+	if verbose {
 		format = fmt.Sprintf("[debug] %s\n", format)
 		fmt.Printf(format, args...)
 	}
@@ -77,7 +77,7 @@ func newMonitorCmd(out io.Writer) *cobra.Command {
 	p.Int64Var(&monitor.expectedResultCount, "expected-result-count", 0, "number of results that are expected to be returned by the query (rollback triggered if the number of results exceeds this value)")
 	p.BoolVar(&monitor.force, "force", false, "force resource update through delete/recreate if needed")
 	p.BoolVar(&monitor.wait, "wait", false, "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking a rollback as successful. It will wait for as long as --rollback-timeout")
-	p.BoolVarP(&monitor.verbose, "verbose", "v", false, "enable verbose output")
+	p.BoolVarP(&verbose, "verbose", "v", false, "enable verbose output")
 	p.Int64Var(&monitor.rollbackTimeout, "rollback-timeout", 300, "time in seconds to wait for any individual Kubernetes operation during the rollback (like Jobs for hooks)")
 	p.Int64Var(&monitor.timeout, "timeout", 300, "time in seconds to wait before assuming a monitoring action is successfull")
 	p.Int64VarP(&monitor.interval, "interval", "i", 10, "time in seconds between each query")
@@ -85,6 +85,7 @@ func newMonitorCmd(out io.Writer) *cobra.Command {
 	cmd.AddCommand(
 		newMonitorPrometheusCmd(out),
 		newMonitorElasticSearchCmd(out),
+		newMonitorSentryCmd(out),
 	)
 
 	return cmd

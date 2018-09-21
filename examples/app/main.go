@@ -13,11 +13,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/heptiolabs/healthcheck"
 	"github.com/justinas/alice"
+
+	// monitoring
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	// logging
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
+
+	// events
+	raven "github.com/getsentry/raven-go"
 )
 
 var (
@@ -178,5 +185,6 @@ func httpErrorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
-	fmt.Fprintf(w, "Host: %s, Version: %s, Status: Internal Servicer Error\n", hostname, version)
+	fmt.Fprintf(w, "Host: %s, Version: %s, Status: Internal Service Error\n", hostname, version)
+	raven.CaptureError(fmt.Errorf("Error triggered, version: %v", version), nil)
 }
