@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## v0.3.0
+
+[PR#6](https://github.com/ContainerSolutions/helm-monitor/pull/6):
+
+- add Sentry support
+- adjust documentation and command line helpers
+
 ## v0.2.0
 
 [PR#5](https://github.com/ContainerSolutions/helm-monitor/pull/5):
