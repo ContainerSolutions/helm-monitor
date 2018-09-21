@@ -23,18 +23,18 @@ empty result.
 The query argument can be either the path of a query DSL json file or a Lucene
 query string.
 
-Usage with Lucene query:
+Example with Lucene query:
 
-	$ helm monitor elasticsearch frontend 'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
+  $ helm monitor elasticsearch my-release 'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 
-Usage with query DSL file:
+Example with query DSL file:
 
-	$ helm monitor elasticsearch frontend ./examples/elasticsearch-query.json
+  $ helm monitor elasticsearch my-release ./examples/elasticsearch-query.json
 
 
 Reference:
 
-	https://www.elastic.co/guide/en/elasticsearch/reference/current/search-count.html
+  https://www.elastic.co/guide/en/elasticsearch/reference/current/search-count.html
 
 `
 

@@ -69,6 +69,12 @@ $ helm monitor elasticsearch --elasticsearch=http://elasticsearch:9200 \
     'status:500 AND kubernetes.labels.app:app AND version:2.0.0'
 ```
 
+### Sentry
+
+```bash
+$ helm install stable/sentry
+```
+
 ## Docker
 
 You can also use the Helm monitor backed Docker image to monitor:

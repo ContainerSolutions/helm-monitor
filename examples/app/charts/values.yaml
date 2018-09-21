@@ -4,6 +4,12 @@
 
 replicaCount: 1
 
+# Sentry DSN to send event to, ie: https://<key>:<secret>@sentry.io/<project>
+env:
+  # SENTRY_DSN:
+  # SENTRY_RELEASE:
+  # SENTRY_ENVIRONMENT:
+
 image:
   repository: my-app
   tag: latest

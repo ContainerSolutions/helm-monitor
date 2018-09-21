@@ -20,14 +20,14 @@ This command monitor a release by querying Prometheus at a given interval and
 take care of rolling back to the previous version if the query return a non-
 empty result.
 
-Usage:
+Example:
 
-	$ helm monitor prometheus frontend 'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
+  $ helm monitor prometheus my-release 'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
 
 
 Reference:
 
-	https://prometheus.io/docs/prometheus/latest/querying/basics/
+  https://prometheus.io/docs/prometheus/latest/querying/basics/
 
 `
 
