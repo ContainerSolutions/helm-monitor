@@ -1,12 +1,10 @@
-FROM golang:1.11 AS build
-ENV GOPATH=""
-ENV GO111MODULE=on
+FROM golang:1.12 AS build
 ARG LDFLAGS
 COPY . /go
 RUN go build -o helm-monitor -ldflags "$LDFLAGS" ./cmd/...
 
 FROM alpine AS helm
-ENV HELM_VERSION=v2.10.0
+ENV HELM_VERSION=v2.13.0
 ENV HELM_TMP_FILE=helm-${HELM_VERSION}-linux-amd64.tar.gz
 RUN wget https://storage.googleapis.com/kubernetes-helm/${HELM_TMP_FILE} && \
   wget https://storage.googleapis.com/kubernetes-helm/${HELM_TMP_FILE}.sha256

@@ -16,7 +16,7 @@ Install Prometheus:
 ```bash
 $ helm install \
     --version 7.0.2 \
-    --set server.service.type=Loadbalancer \
+    --set server.service.type=LoadBalancer \
     --set server.global.scrape_interval=30s \
     --set alertmanager.enabled=false \
     --set kubeStateMetrics.enabled=false \
