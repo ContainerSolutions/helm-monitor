@@ -8,7 +8,7 @@ a PromQL (Prometheus), events (Sentry), Lucene or DSL query (ElasticSearch).
 
 ## Demo
 
-<a href="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs" target="_blank"><img src="https://asciinema.org/a/SKViqDmByVLgv14F9hrlYX9qs.png" style="width:100%" /></a>
+[![asciicast](https://asciinema.org/a/231906.svg)](https://asciinema.org/a/231906)
 
 ## Install
 
