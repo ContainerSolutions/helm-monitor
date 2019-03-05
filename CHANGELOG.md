@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v0.4.0
+
+[PR#9](https://github.com/ContainerSolutions/helm-monitor/pull/9):
+
+- upgrade dependencies, make it compatible with Helm 2.13.
+
 ## v0.3.0
 
 [PR#6](https://github.com/ContainerSolutions/helm-monitor/pull/6):
