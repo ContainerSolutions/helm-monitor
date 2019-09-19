@@ -84,7 +84,7 @@ func newMonitorCmd(out io.Writer) *cobra.Command {
 
 	cmd.AddCommand(
 		newMonitorPrometheusCmd(out),
-		newMonitorElasticSearchCmd(out),
+		newMonitorElasticsearchCmd(out),
 		newMonitorSentryCmd(out),
 	)
 

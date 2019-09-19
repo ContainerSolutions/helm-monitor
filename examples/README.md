@@ -27,5 +27,5 @@ $ minikube service my-app
 ## Follow the monitoring procedure from the example below
 
 - [rollback based on Prometheus](prometheus.md)
-- [rollback based on ElasticSearch](elasticsearch.md)
+- [rollback based on Elasticsearch](elasticsearch.md)
 - [rollback based on Sentry](sentry.md)
