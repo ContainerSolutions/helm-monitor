@@ -3,7 +3,7 @@ name: "monitor"
 version: "0.4.0"
 usage: "monitor and rollback in case of failure based on metrics or logs"
 description: |-
-  Query at a given interval a Prometheus, ElasticSearch or Sentry instance. A
+  Query at a given interval a Prometheus, Elasticsearch or Sentry instance. A
   rollback of the release is initiated if the number of result is positive.
 ignoreFlags: false
 useTunnel: true

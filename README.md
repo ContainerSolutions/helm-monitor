@@ -2,7 +2,7 @@ Helm Monitor plugin
 ===================
 
 > Monitor a release, rollback to a previous version depending on the result of
-a PromQL (Prometheus), events (Sentry), Lucene or DSL query (ElasticSearch).
+a PromQL (Prometheus), events (Sentry), Lucene or DSL query (Elasticsearch).
 
 ![Helm monitor failure](helm-monitor-failure.png)
 
@@ -43,9 +43,9 @@ $ helm monitor prometheus --prometheus=http://prometheus:9090 \
     'rate(http_requests_total{code=~"^5.*$"}[5m]) > 0'
 ```
 
-### ElasticSearch
+### Elasticsearch
 
-Monitor the **peeking-bunny** release against an ElasticSearch server, a
+Monitor the **peeking-bunny** release against an Elasticsearch server, a
 rollback is initiated if the 5xx error rate is over 0 for the last minute.
 
 Using a Lucene query:
@@ -60,7 +60,7 @@ Using a query DSL file:
 $ helm monitor elasticsearch peeking-bunny ./query.json
 ```
 
-You can connect to a given ElasticSearch instance, by default it will connect to
+You can connect to a given Elasticsearch instance, by default it will connect to
 *http://localhost:9200*.
 
 ```bash

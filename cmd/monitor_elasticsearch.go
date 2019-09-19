@@ -15,8 +15,8 @@ import (
 	"k8s.io/helm/pkg/helm"
 )
 
-const monitorElasticSearchDesc = `
-This command monitor a release by querying ElasticSearch at a given interval
+const monitorElasticsearchDesc = `
+This command monitor a release by querying Elasticsearch at a given interval
 and take care of rolling back to the previous version if the query return a non-
 empty result.
 
@@ -38,27 +38,27 @@ Reference:
 
 `
 
-type monitorElasticSearchCmd struct {
+type monitorElasticsearchCmd struct {
 	name              string
 	out               io.Writer
 	client            helm.Interface
-	elasticSearchAddr string
+	elasticsearchAddr string
 	query             string
 }
 
-type elasticSearchQueryResponse struct {
+type elasticsearchQueryResponse struct {
 	Count int64 `json:"count"`
 }
 
-func newMonitorElasticSearchCmd(out io.Writer) *cobra.Command {
-	m := &monitorElasticSearchCmd{
+func newMonitorElasticsearchCmd(out io.Writer) *cobra.Command {
+	m := &monitorElasticsearchCmd{
 		out: out,
 	}
 
 	cmd := &cobra.Command{
 		Use:     "elasticsearch [flags] RELEASE [QUERY DSL PATH|LUCENE QUERY]",
 		Short:   "query an elasticsearch server",
-		Long:    monitorElasticSearchDesc,
+		Long:    monitorElasticsearchDesc,
 		PreRunE: setupConnection,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 {
@@ -74,12 +74,12 @@ func newMonitorElasticSearchCmd(out io.Writer) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&m.elasticSearchAddr, "elasticsearch", "http://localhost:9200", "elasticsearch address")
+	f.StringVar(&m.elasticsearchAddr, "elasticsearch", "http://localhost:9200", "elasticsearch address")
 
 	return cmd
 }
 
-func (m *monitorElasticSearchCmd) run() error {
+func (m *monitorElasticsearchCmd) run() error {
 	_, err := m.client.ReleaseContent(m.name)
 	if err != nil {
 		return prettyError(err)
@@ -93,7 +93,7 @@ func (m *monitorElasticSearchCmd) run() error {
 
 	var req *http.Request
 	if err != nil {
-		req, err = http.NewRequest("GET", m.elasticSearchAddr+"/_count", nil)
+		req, err = http.NewRequest("GET", m.elasticsearchAddr+"/_count", nil)
 		if err != nil {
 			return prettyError(err)
 		}
@@ -102,7 +102,7 @@ func (m *monitorElasticSearchCmd) run() error {
 		q.Add("q", m.query)
 		req.URL.RawQuery = q.Encode()
 	} else {
-		req, err = http.NewRequest("GET", m.elasticSearchAddr+"/_count", queryBody)
+		req, err = http.NewRequest("GET", m.elasticsearchAddr+"/_count", queryBody)
 		if err != nil {
 			return prettyError(err)
 		}
@@ -140,7 +140,7 @@ func (m *monitorElasticSearchCmd) run() error {
 
 			fmt.Printf("Body: %s\n", string(body))
 
-			response := &elasticSearchQueryResponse{}
+			response := &elasticsearchQueryResponse{}
 			err = json.Unmarshal(body, response)
 			if err != nil {
 				return prettyError(err)

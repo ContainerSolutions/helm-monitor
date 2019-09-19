@@ -1,7 +1,7 @@
-Rollback based on an ElasticSearch query
+Rollback based on an Elasticsearch query
 ========================================
 
-> Use helm-monitor to rollback a release based on an ElasticSearch query
+> Use helm-monitor to rollback a release based on an Elasticsearch query
 
 ## Prepare
 
