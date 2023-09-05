@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -28,7 +27,7 @@ func TestConvertStringToTags(t *testing.T) {
 			expected: []*tag{},
 		},
 	} {
-		t.Run(fmt.Sprintf("%s", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			output := convertStringToTags(test.input)
 			if !reflect.DeepEqual(test.expected, output) {
 				t.Errorf(
@@ -81,7 +80,7 @@ func TestMatchTags(t *testing.T) {
 			expected: false,
 		},
 	} {
-		t.Run(fmt.Sprintf("%s", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			output := matchTags(test.input.tagList, test.input.matchTagList)
 			if !reflect.DeepEqual(test.expected, output) {
 				t.Errorf(
@@ -199,7 +198,7 @@ func TestMatchEvents(t *testing.T) {
 			},
 		},
 	} {
-		t.Run(fmt.Sprintf("%s", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			output, err := matchEvents(
 				test.input.eventList,
 				test.input.message,
